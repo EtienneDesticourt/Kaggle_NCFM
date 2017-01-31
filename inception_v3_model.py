@@ -9,6 +9,9 @@ class InceptionV3Model(object):
     def __init__(self):
         pass
 
+    def reset(self):
+        self.model.set_weights(self.init_weights)
+
     def create_model(self, learning_rate, epochs, batch_size):
         self.learning_rate = learning_rate
         self.epochs = epochs
@@ -28,6 +31,7 @@ class InceptionV3Model(object):
 
         optimizer = SGD(lr=self.learning_rate, momentum=0.9, decay=0.0, nesterov=True)
         self.model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+        self.init_weights = self.model.get_weights()
 
     def load_model(self, weights_path):
         self.model = load_model(weights_path)

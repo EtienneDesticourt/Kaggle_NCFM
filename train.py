@@ -57,7 +57,7 @@ def link_to_temp_dir(train_dir, temp_dir, files):
 
 # autosave best Model
 def gen_save_callback(index):
-    model_name = "weights" + str(index) + ".h5"
+    model_name = "weights.{val_loss:.4f}." + str(index) + ".h5"
     return ModelCheckpoint(model_name, monitor='val_acc', verbose = 1, save_best_only = True)
 
 # this is the augmentation configuration we will use for training
@@ -74,6 +74,8 @@ val_datagen = ImageDataGenerator(rescale=1./255)
 
 
 
+inception_v3_model = InceptionV3Model()
+inception_v3_model.create_model(LEARNING_RATE, EPOCHS, BATCH_SIZE)
 
 paths, labels = load_path_data(ROOT_DATA_DIR)
 skf = StratifiedKFold(n_splits=NB_FOLDS, shuffle=True)
@@ -101,9 +103,10 @@ for train_index, val_index in skf.split(paths, labels):
 
     # Train model with new split
     save_best_model = gen_save_callback(fold)
-    inception_v3_model = InceptionV3Model()
-    inception_v3_model.create_model(LEARNING_RATE, EPOCHS, BATCH_SIZE)
+    inception_v3_model.reset()
     inception_v3_model.fit(train_generator, validation_generator, NB_TRAIN_SAMPLES, NB_VAL_SAMPLES, [save_best_model])
 
     fold += 1
+    print(fold)
+
 
