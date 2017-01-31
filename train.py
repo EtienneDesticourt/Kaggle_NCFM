@@ -1,45 +1,64 @@
-from keras.applications.inception_v3 import InceptionV3
 import os
-from keras.layers import Flatten, Dense, AveragePooling2D
-from keras.models import Model
-from keras.optimizers import RMSprop, SGD
+import shutil
+from keras.optimizers import SGD
 from keras.callbacks import ModelCheckpoint
 from keras.preprocessing.image import ImageDataGenerator
+from inception_v3_model import InceptionV3Model
+from sklearn.model_selection import StratifiedKFold
+import numpy as np
+import time
 
-learning_rate = 0.0001
-img_width = 299
-img_height = 299
-nbr_train_samples = 293
-nbr_validation_samples = 78
-nbr_epochs = 25
-batch_size = 8
+# Fitting parameters
+LEARNING_RATE = 0.0001
+EPOCHS = 25
+BATCH_SIZE = 8
+NB_FOLDS = 5
 
-train_data_dir = 'train_split'
-val_data_dir = 'val_split'
+# Data parameters
+IMG_WIDTH = 299
+IMG_HEIGHT = 299
+NB_TRAIN_SAMPLES = 294
+NB_VAL_SAMPLES = 79
+ROOT_DATA_DIR = 'train_sample'
+TEMP_SPLIT_DIR = 'temp'
+TRAIN_DATA_DIR = os.path.join(TEMP_SPLIT_DIR, 'train_split')
+VAL_DATA_DIR = os.path.join(TEMP_SPLIT_DIR, 'val_split')
+FISH_NAMES = ['ALB', 'BET', 'DOL', 'LAG', 'NoF', 'OTHER', 'SHARK', 'YFT']
 
-FishNames = ['ALB', 'BET', 'DOL', 'LAG', 'NoF', 'OTHER', 'SHARK', 'YFT']
+def load_path_data(train_dir):
+    paths = []
+    labels = []
+    for fish_path, _, images in os.walk(train_dir):
+        fish_name = os.path.basename(fish_path)
+        paths += [os.path.join(fish_name, img) for img in images]
+        labels += [fish_name] * len(images)
+    return np.array(paths), np.array(labels)
 
-print('Loading InceptionV3 Weights ...')
-InceptionV3_notop = InceptionV3(include_top=False, weights='imagenet',
-                    input_tensor=None, input_shape=(299, 299, 3))
-# Note that the preprocessing of InceptionV3 is:
-# (x / 255 - 0.5) x 2
+def reset_temp_dirs():
+    try:
+        shutil.rmtree(TEMP_SPLIT_DIR)
+    except FileNotFoundError:
+        pass
+    os.mkdir(TEMP_SPLIT_DIR)
+    os.mkdir(TRAIN_DATA_DIR)
+    os.mkdir(VAL_DATA_DIR)
+    for fish in FISH_NAMES:
+        train_path = os.path.join(TRAIN_DATA_DIR, fish)
+        val_path = os.path.join(VAL_DATA_DIR, fish)
+        os.mkdir(train_path)
+        os.mkdir(val_path)
 
-print('Adding Average Pooling Layer and Softmax Output Layer ...')
-output = InceptionV3_notop.get_layer(index = -1).output  # Shape: (8, 8, 2048)
-output = AveragePooling2D((8, 8), strides=(8, 8), name='avg_pool')(output)
-output = Flatten(name='flatten')(output)
-output = Dense(8, activation='softmax', name='predictions')(output)
+def link_to_temp_dir(train_dir, temp_dir, files):
+    for path in files:
+        source = os.path.join(train_dir, path)
+        dest = os.path.join(temp_dir, path)
+        os.link(source, dest)
 
-InceptionV3_model = Model(InceptionV3_notop.input, output)
-#InceptionV3_model.summary()
-
-optimizer = SGD(lr = learning_rate, momentum = 0.9, decay = 0.0, nesterov = True)
-InceptionV3_model.compile(loss='categorical_crossentropy', optimizer = optimizer, metrics = ['accuracy'])
 
 # autosave best Model
-best_model_file = "weights.h5"
-best_model = ModelCheckpoint(best_model_file, monitor='val_acc', verbose = 1, save_best_only = True)
+def gen_save_callback(index):
+    model_name = "weights" + str(index) + ".h5"
+    return ModelCheckpoint(model_name, monitor='val_acc', verbose = 1, save_best_only = True)
 
 # this is the augmentation configuration we will use for training
 train_datagen = ImageDataGenerator(
@@ -51,34 +70,40 @@ train_datagen = ImageDataGenerator(
         height_shift_range=0.1,
         horizontal_flip=True)
 
-# this is the augmentation configuration we will use for validation:
-# only rescaling
 val_datagen = ImageDataGenerator(rescale=1./255)
 
-train_generator = train_datagen.flow_from_directory(
-        train_data_dir,
-        target_size = (img_width, img_height),
-        batch_size = batch_size,
-        shuffle = True,
-        # save_to_dir = '/Users/pengpai/Desktop/python/DeepLearning/Kaggle/NCFM/data/visualization',
-        # save_prefix = 'aug',
-        classes = FishNames,
-        class_mode = 'categorical')
 
-validation_generator = val_datagen.flow_from_directory(
-        val_data_dir,
-        target_size=(img_width, img_height),
-        batch_size=batch_size,
-        shuffle = True,
-        #save_to_dir = '/Users/pengpai/Desktop/python/DeepLearning/Kaggle/NCFM/data/visulization',
-        #save_prefix = 'aug',
-        classes = FishNames,
-        class_mode = 'categorical')
 
-InceptionV3_model.fit_generator(
-        train_generator,
-        samples_per_epoch = nbr_train_samples,
-        nb_epoch = nbr_epochs,
-        validation_data = validation_generator,
-        nb_val_samples = nbr_validation_samples,
-        callbacks = [best_model])
+
+paths, labels = load_path_data(ROOT_DATA_DIR)
+skf = StratifiedKFold(n_splits=NB_FOLDS, shuffle=True)
+
+fold = 1
+for train_index, val_index in skf.split(paths, labels):
+
+    # Copy train data to split folders for generators
+    reset_temp_dirs()
+    train_paths = paths[train_index]
+    link_to_temp_dir(ROOT_DATA_DIR, TRAIN_DATA_DIR, train_paths)
+    val_paths = paths[val_index]
+    link_to_temp_dir(ROOT_DATA_DIR, VAL_DATA_DIR, val_paths)
+
+    # Create generators with new split
+    train_generator = train_datagen.flow_from_directory(TRAIN_DATA_DIR,
+        target_size = (IMG_WIDTH, IMG_HEIGHT),
+        batch_size = BATCH_SIZE,
+        classes = FISH_NAMES)
+
+    validation_generator = val_datagen.flow_from_directory(VAL_DATA_DIR,
+        target_size=(IMG_WIDTH, IMG_HEIGHT),
+        batch_size=BATCH_SIZE,
+        classes = FISH_NAMES)
+
+    # Train model with new split
+    save_best_model = gen_save_callback(fold)
+    inception_v3_model = InceptionV3Model()
+    inception_v3_model.create_model(LEARNING_RATE, EPOCHS, BATCH_SIZE)
+    inception_v3_model.fit(train_generator, validation_generator, NB_TRAIN_SAMPLES, NB_VAL_SAMPLES, [save_best_model])
+
+    fold += 1
+
