@@ -7,7 +7,7 @@ np.random.seed(2016)
 root_train = 'train_split'
 root_val = 'val_split'
 
-root_total = 'train'
+root_total = 'train_sample'
 
 FishNames = ['ALB', 'BET', 'DOL', 'LAG', 'NoF', 'OTHER', 'SHARK', 'YFT']
 

@@ -1,0 +1,1 @@
+loss: 0.7043 acc: 0.8095 val_loss: 1.2191 val_acc: 0.7342 LB_loss: 1.52540

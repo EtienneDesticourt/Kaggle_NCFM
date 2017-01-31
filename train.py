@@ -9,8 +9,8 @@ from keras.preprocessing.image import ImageDataGenerator
 learning_rate = 0.0001
 img_width = 299
 img_height = 299
-nbr_train_samples = 3019
-nbr_validation_samples = 758
+nbr_train_samples = 294
+nbr_validation_samples = 79
 nbr_epochs = 25
 batch_size = 8
 
