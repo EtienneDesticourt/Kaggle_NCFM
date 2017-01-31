@@ -2,5 +2,6 @@ test_stg1
 train
 train_split
 val_split
+train_sample
 *.h5
 submit.csv
