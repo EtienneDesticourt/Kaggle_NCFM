@@ -1,0 +1,26 @@
+For the first submission I simply used the inceptionV3 model from keras with a tensorflow backend
+and a random 80:20 train/validation split. It took 110 minutes to train.
+
+For the second submission I used a subsample of the total training data to be able to train the model faster
+and test hypotheses with the same method as submission 1. It took 10 minutes to train. I concluded that subsampling achieved its goal.
+
+For the third submission I relabeled some images in the subsample. The LB loss increased from submission 2 even though the val
+loss decreased. I couldn't conclude on the usefulness of relabeling. I concluded that I need to implement k-fold CV to have
+a val-loss/LB-loss correspondance for future tests.
+
+
+Cluster by boats
+Black-out unchanged background
+Remove duplicate/sequential images for faster training
+Correctly relabel dataset
+Get validation split by removing sequences
+Data augmentation average
+Feed into SVM
+Split by Day/Night
+
+#TODO:
+
+Add kfold cv to have  meaningful score
+Relabel
+Sort by boat
+Sort by day night
