@@ -1,0 +1,6 @@
+test_stg1
+train
+train_split
+val_split
+*.h5
+submit.csv
