@@ -37,7 +37,7 @@ class InceptionV3Model(object):
         self.model = load_model(weights_path)
 
     def fit(self, train_data, val_data, nb_train_samples, nb_val_samples, callbacks):
-        self.model.fit_generator(
+        return self.model.fit_generator(
             train_data,
             samples_per_epoch=nb_train_samples,
             nb_epoch=self.epochs,
@@ -46,5 +46,5 @@ class InceptionV3Model(object):
             callbacks=callbacks)
 
     def predict(self, test_data, nb_test_samples):
-        self.model.predict_generator(test_data, nb_test_samples)
+        return self.model.predict_generator(test_data, nb_test_samples)
 

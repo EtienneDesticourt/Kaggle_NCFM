@@ -6,3 +6,5 @@ train_sample
 *.h5
 submit.csv
 original_split
+temp2
+__pycache__
