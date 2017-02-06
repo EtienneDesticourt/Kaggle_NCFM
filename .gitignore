@@ -8,3 +8,5 @@ submit.csv
 original_split
 temp2
 __pycache__
+clustered
+*.npy

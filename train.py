@@ -8,6 +8,7 @@ from sklearn.model_selection import StratifiedKFold
 import numpy as np
 import time
 
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
 # Fitting parameters
 LEARNING_RATE = 0.0001
 EPOCHS = 25
