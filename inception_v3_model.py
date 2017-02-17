@@ -3,6 +3,9 @@ from keras.layers import Flatten, Dense, AveragePooling2D
 from keras.models import Model
 from keras.optimizers import SGD
 from keras.models import load_model
+import os
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
 
 class InceptionV3Model(object):
 

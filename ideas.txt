@@ -15,9 +15,17 @@ For the 5th submission I trained the inceptionV3 model with stratifield k-fold c
 For the 6th submission I trained the inceptionV3 model with stratifield k-fold cross validation (k=5) on the relabelled training set (1.5% of images relabeled) the val loss went up but the lb score went down. I concluded that k-fold cross validation wasn't enough and that I needed to
 split the training set in a meaninful way by separating sequences.
 
+For the 7th submission I tried using masks over boats but it went meh.
+
+For 8th and 9th I overfit and fucked it up.
+
+For the 10th submission I just repeated the training process a bunch of times and averaged the prediction to make better use data augmentation.
 
 Cluster by boats
-Black-out unchanged background
+train model cluster truth
+calc fish probability by boat and ensemble with original model
+
+
 Remove duplicate/sequential images for faster training
 Correctly relabel dataset
 Get validation split by removing sequences
