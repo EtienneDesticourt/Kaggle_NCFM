@@ -56,6 +56,37 @@ class DataWrangler(object):
             val_path = os.path.join(self.temp_path, VAL_DATA_DIR, label)
             self.create_symlinks(full_label_path, val_path, val_data)
 
+    def split_with_file(self, file_path):
+        self.build_split_directory_tree()
+
+        train_files = []
+        val_files = []
+        with open(file_path, "r") as f:
+            for line in f:
+                file_name, train_or_val = line.split(",")
+                if train_or_val == "train\n":
+                    train_files.append(file_name)
+                else:
+                    val_files.append(file_name)
+
+        for label in os.listdir(self.data_path):
+            full_label_path = os.path.join(self.data_path, label)
+            data = os.listdir(full_label_path)
+            if len(data) == 0: continue
+
+            train_data = [row for row in data if row in train_files]
+            val_data = [row for row in data if row in val_files]
+
+            self.num_train_samples = len(train_data)
+            self.num_val_samples = len(val_data)
+
+            train_path = os.path.join(self.temp_path, TRAIN_DATA_DIR, label)
+            self.create_symlinks(full_label_path, train_path, train_data)
+
+            val_path = os.path.join(self.temp_path, VAL_DATA_DIR, label)
+            self.create_symlinks(full_label_path, val_path, val_data)
+
+
     def get_train_generator(self, image_size, batch_size):
         train_datagen = ImageDataGenerator(
             rescale=1./255,
@@ -71,12 +102,32 @@ class DataWrangler(object):
             classes = os.listdir(self.train_path))
         return train_generator
 
-    def get_val_generator(self, image_size, batch_size):
+    def get_val_generator(self, image_size, batch_size, augment=False):
         val_datagen = ImageDataGenerator(rescale=1./255)
         validation_generator = val_datagen.flow_from_directory(self.val_path,
             target_size=image_size,
             batch_size=batch_size,
             classes = os.listdir(self.train_path))
         return validation_generator
+
+    def get_test_generator(self, image_size, batch_size, test_path):
+        test_datagen = ImageDataGenerator(
+            rescale=1./255,
+            shear_range=0.1,
+            zoom_range=0.1,
+            width_shift_range=0.1,
+            height_shift_range=0.1,
+            horizontal_flip=True)
+        random_seed = np.random.random_integers(0, 100000)
+
+        test_generator = test_datagen.flow_from_directory(
+                test_path,
+                target_size=image_size,
+                batch_size=batch_size,
+                shuffle = False, # Important !!!
+                seed = random_seed,
+                classes = None,
+                class_mode = None)
+        return test_generator
 
 
