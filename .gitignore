@@ -12,3 +12,7 @@ clustered
 *.npy
 temp
 clustered2
+clustered3
+unclustered
+kmeans.pickle
+*.rar
