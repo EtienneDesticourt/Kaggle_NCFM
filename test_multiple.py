@@ -19,8 +19,8 @@ if __name__ == "__main__":
 
     for model in models:
         model_path = os.path.join(MODEL_DIR, model)
-
-        args = ["python", PREDICT_SCRIPT_NAME, model_path, OUTPUT_FILE]
+        output_path = OUTPUT_FILE.replace(".npy", "_" + str(model) + ".npy")
+        args = ["python", PREDICT_SCRIPT_NAME, model_path, output_path]
         command = " ".join(args)
         if os.system(command):
             raise RuntimeError("Failed to produce augmented predictions for current model.")

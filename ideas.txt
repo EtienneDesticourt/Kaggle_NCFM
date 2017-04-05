@@ -21,6 +21,8 @@ For 8th and 9th I overfit and fucked it up.
 
 For the 10th submission I just repeated the training process a bunch of times and averaged the prediction to make better use data augmentation.
 
+11th to 22nd Trained 17 models with data augmentation and checked different combinations.
+
 Cluster by boats
 train model cluster truth
 calc fish probability by boat and ensemble with original model
