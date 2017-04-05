@@ -2,6 +2,7 @@ import os
 import sys
 from keras.callbacks import ModelCheckpoint
 from inception_v3_model import InceptionV3Model
+from inception_v4_model import InceptionV4Model
 from data_wrangler import DataWrangler
 
 
@@ -12,7 +13,7 @@ EPOCHS = 25
 BATCH_SIZE = 8
 IMAGE_SIZE = (299, 299)
 RAW_PATH = "train"
-NUM_AUGMENTATIONS = 5
+NUM_AUGMENTATIONS = 10
 
 if __name__ == "__main__":
 
@@ -29,7 +30,7 @@ if __name__ == "__main__":
         return save_callback
 
 
-    model = InceptionV3Model()
+    model = InceptionV4Model()
     model.create_model(LEARNING_RATE, EPOCHS, BATCH_SIZE)
 
     for aug in range(NUM_AUGMENTATIONS):
@@ -37,7 +38,7 @@ if __name__ == "__main__":
         train_gen = data_wrangler.get_train_generator(IMAGE_SIZE, BATCH_SIZE)
         val_gen = data_wrangler.get_val_generator(IMAGE_SIZE, BATCH_SIZE)
 
-        save_callback = get_save_callback("InceptionV3_" + str(aug) + ".h5")
+        save_callback = get_save_callback("InceptionV4_" + str(aug) + ".h5")
 
         model.reset()
         model.fit(

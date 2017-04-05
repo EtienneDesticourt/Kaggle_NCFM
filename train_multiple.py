@@ -1,6 +1,7 @@
 import os
 from keras.callbacks import ModelCheckpoint
 from inception_v3_model import InceptionV3Model
+from inception_v4_model import InceptionV4Model
 from data_wrangler import DataWrangler
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
@@ -15,7 +16,7 @@ def gen_save_callback(boat_id):
     model_name = "weights." + str(boat_id) + ".h5"
     return ModelCheckpoint(model_name, monitor='val_acc', verbose = 1, save_best_only = True)
 
-model = InceptionV3Model()
+model = InceptionV4Model()
 model.create_model(LEARNING_RATE, EPOCHS, BATCH_SIZE)
 
 for boat_id in os.listdir(CLUSTERED_PATH):
